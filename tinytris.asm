@@ -1,12 +1,18 @@
 ;
+; ## Assumptions ##
+; - text-mode (0xb8000) is active @ entry-point (ax=1; int 0x13)
+; - es=ss=ds @ entry-point
+;
+; ## Registers ##
+;
 ; bp = board
-; bl = piece-x
+; cl = piece-x
 ; si = piece_ptr into board
 ; dx = piece
+; bx = patch_ptr
 ;
-; ax, cx, di clobber
+; ax, di = clobber (hehe sometimes at least)
 ;
-
 bits 16
 %ifndef BOOT_SECTOR
 org 0x100
@@ -171,7 +177,7 @@ redraw:
 ; MNOP	PLHD	DBCA	AEIM
 ;
 rotate:
-%if 1
+%if 0
 	pusha
 
 	xor bp, bp
