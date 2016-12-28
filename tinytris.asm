@@ -40,16 +40,16 @@ org 0x7c00
 	xor di, di
 	mov bl, BOARD_HEIGHT
 @@next_row:
-	mov cx, 0x1000
+	mov dx, 0x1000
 @@next_col
-	test cx, word [si]
+	test dx, word [si]
 	mov ah, 0x44
 	jnz @@draw
 	mov ah, 0x77
 @@draw:
 	stosw
 	stosw
-	shr cx, 1
+	shr dx, 1
 	jnz @@next_col
 	add di, ((SCREEN_WIDTH * 2) - ((BOARD_WIDTH + 1) * 4))
 	lodsw ; add si, 2
@@ -67,10 +67,9 @@ org 0x7c00
 	ja @@done
 	jnz @@next_row
 	mov di, si
-	dec si
-	dec si
-@@more:
 	std
+	lodsw ; sub si, 2
+@@more:
 	movsw
 	cmp si, bp
 	jne @@more
@@ -116,7 +115,7 @@ org 0x7c00
 start:
 	cld
 	init_board
-	lea bx, [piece_mode]
+	mov bx, piece_mode
 get_next_piece:
 	remove_lines
 	next_piece
