@@ -38,7 +38,7 @@ org 0x7c00
 	pusha
 	mov si, bp
 	xor di, di
-	mov bh, BOARD_HEIGHT
+	mov bl, BOARD_HEIGHT
 @@next_row:
 	mov cx, 0x1000
 @@next_col
@@ -53,7 +53,7 @@ org 0x7c00
 	jnz @@next_col
 	add di, ((SCREEN_WIDTH * 2) - ((BOARD_WIDTH + 1) * 4))
 	lodsw ; add si, 2
-	dec bh
+	dec bl
 	jnz @@next_row
 	popa
 %endmacro
@@ -222,9 +222,9 @@ rotate:
 	jmp redraw
 
 
-piece_operation: ; cant touch di
+piece_operation:
 	pusha
-	xor ax, ax
+	xor di, di
 	mov cl, 12
 __next:
 	pusha
@@ -239,13 +239,12 @@ piece_mode:
 	test word [si], dx
 	popa
 	jz @@z
-	inc ax
+	inc di
 @@z:
-	inc si ; cant lodsw here or al is nuked...
-	inc si
+	lodsw
 	sub cl, 4
 	jns __next
-	or ax, ax
+	or di, di
 	popa
 	mov byte [piece_mode], 0x85 ; Enter test-mode
 	ret
