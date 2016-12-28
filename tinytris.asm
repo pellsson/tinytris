@@ -89,8 +89,8 @@ org 0x7c00
 	cmp al, 7
 	jnb @@invalid
 	shl al, 1
-	movzx bx, al
-	mov dx, [pieces + bx]
+	movzx di, al
+	mov dx, [pieces + di]
 	mov bl, 4
 	mov si, bp
 %endmacro
@@ -173,9 +173,7 @@ redraw:
 ;
 rotate:
 %if 1
-	push bp
-	push bx
-	push si
+	pusha
 
 	xor bp, bp
 	mov si, 0x8888
@@ -211,22 +209,22 @@ rotate:
 	dec cl
 	jnb @@next
 
-	pop si
-	pop bx
+	pop cx
+	push bp ; change di on in pusha
+	popa
 
-	xchg dx, bp
+	xchg dx, di
 	piece_operation_test
-	jz @@cant_rotate
-	xchg dx, bp
-@@cant_rotate:
-	pop bp
+	jz @@can_rotate
+	xchg dx, di
+@@can_rotate:
 %endif
 	jmp redraw
 
 
 piece_operation: ; cant touch di
+	pusha
 	xor ax, ax
- 	push si
 	mov cl, 12
 __next:
 	pusha
@@ -247,9 +245,9 @@ piece_mode:
 	inc si
 	sub cl, 4
 	jns __next
-	pop si
-	mov byte [piece_mode], 0x85 ; Enter test-mode
 	or ax, ax
+	popa
+	mov byte [piece_mode], 0x85 ; Enter test-mode
 	ret
 
 pieces:
