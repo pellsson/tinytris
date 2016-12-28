@@ -91,7 +91,7 @@ org 0x7c00
 	shl al, 1
 	movzx di, al
 	mov dx, [pieces + di]
-	mov bl, 4
+	mov cl, 4
 	mov si, bp
 %endmacro
 
@@ -99,12 +99,12 @@ org 0x7c00
 ; 31 14 - xor word [si], dx
 ; 85 14 - test word [si], dx
 %macro piece_operation_merge 0
-	mov byte [piece_mode], 0x09
+	mov byte [bx], 0x09
 	call piece_operation
 %endmacro
 
 %macro piece_operation_remove 0
-	mov byte [piece_mode], 0x31
+	mov byte [bx], 0x31
 	call piece_operation
 %endmacro
 
@@ -116,7 +116,7 @@ org 0x7c00
 start:
 	cld
 	init_board
-
+	lea bx, [piece_mode]
 get_next_piece:
 	remove_lines
 	next_piece
@@ -145,7 +145,7 @@ redraw:
 	;
 	; Read keyboard (blocking)
 	;
-	mov di, bx ; new X-position
+	mov di, cx ; new X-position
 	xor ah, ah
 	int 0x16
 	sub al, 'j'
@@ -154,14 +154,14 @@ redraw:
 	jz short rotate
 	dec al
 	jnz short redraw
-	dec bx
+	dec cx
 	jmp @@move_collision_test
 @@move_left:
-	inc bx
+	inc cx
 @@move_collision_test:
 	piece_operation_test
 	jz short redraw
-	mov bx, di ; undo move
+	mov cx, di ; undo move
 	jmp short redraw
 %endif
 
@@ -225,6 +225,7 @@ rotate:
 piece_operation:
 	pusha
 	xor di, di
+	mov bx, cx
 	mov cl, 12
 __next:
 	pusha
@@ -246,7 +247,7 @@ piece_mode:
 	jns __next
 	or di, di
 	popa
-	mov byte [piece_mode], 0x85 ; Enter test-mode
+	mov byte [bx], 0x85 ; Enter test-mode
 	ret
 
 pieces:
