@@ -132,7 +132,7 @@ redraw:
 	dec si
 	dec si
 @@no_collide:
-	piece_operation_merge
+	piece_operation_merge ; SIZE: can reduce 3 bytes here, just change piece_mode once
 	draw_board
 	popf
 	jnz get_next_piece
@@ -177,7 +177,7 @@ redraw:
 ; MNOP	PLHD	DBCA	AEIM
 ;
 rotate:
-%if 0
+%if 1
 	pusha
 
 	xor bp, bp
@@ -226,30 +226,24 @@ rotate:
 %endif
 	jmp redraw
 
-
 piece_operation:
 	pusha
 	xor di, di
-	mov bx, cx
-	mov cl, 12
-__next:
+@next:
 	pusha
-	shr dx, cl
-	and dx, 0x0f
-	mov cl, bl
-	shl dx, cl
-	; 09 14 - or word [si], dx
-	; 31 14 - xor word [si], dx
-	; 85 14 - test word [si], dx
+	mov ax, dx
+	and ax, 0x0f
+	shl ax, cl
 piece_mode:
-	test word [si], dx
+	test ax, word [si]
 	popa
-	jz @@z
-	inc di
-@@z:
 	lodsw
-	sub cl, 4
-	jns __next
+	jz @z
+	xchg ax, di ; mov di, ax (invalidate ax)
+@z:
+	shr dx, 4
+	jnz @next
+
 	or di, di
 	popa
 	mov byte [bx], 0x85 ; Enter test-mode
