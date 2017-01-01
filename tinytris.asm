@@ -39,6 +39,7 @@ org 0x7c00
 %endmacro
 
 %macro draw_board 0
+%if 1
 	push 0xb800
 	pop es
 	pusha
@@ -62,6 +63,7 @@ org 0x7c00
 	dec bl
 	jnz @@next_row
 	popa
+%endif
 %endmacro
 
 %macro remove_lines 0
@@ -171,10 +173,10 @@ redraw:
 %endif
 
 ;
-; ABCD	MIEA	PONM	DHLP
-; EFGH	NJFB	LKJI	BGKO
-; IJKL	OKGC	HGFE	CFJN
-; MNOP	PLHD	DBCA	AEIM
+; ABCD    MIEA    PONM    DHLP
+; EFGH    NJFB    LKJI    BGKO
+; IJKL    OKGC    HGFE    CFJN
+; MNOP    PLHD    DBCA    AEIM
 ;
 rotate:
 %if 1
@@ -182,13 +184,13 @@ rotate:
 
 	xor bp, bp
 	mov si, 0x8888
-	mov ch, 12
-	mov cl, 3
+	mov cx, 0x03
+	mov al, 0x0c
 @@next:
-	push dx
-	and dx, si
-	shr dx, cl
-	mov di, dx
+	push dx		; ABCD    ...A
+	and dx, si	; EFGH -> ...E
+	shr dx, cl	; IJKL -> ...I
+	mov di, dx	; MNOP    ...M
 
 	push cx
 	mov cl, 15
@@ -202,10 +204,10 @@ rotate:
 	pop cx
 
 	shr di, 12
-	xchg ch, cl
+	xchg ax, cx
 	shl di, cl
-	sub cl, 4
-	xchg ch, cl
+	xchg ax, cx
+	sub al, 4
 
 	or bp, di ; bp = rotated
 
