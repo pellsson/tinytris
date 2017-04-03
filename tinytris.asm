@@ -147,7 +147,7 @@ org 0x7c00
 	jnb @@invalid
 	shl al, 1
 	movzx di, al
-	mov dx, [pieces + di]
+	mov dx, [bx + di + (pieces - piece_mode)]
 	mov cl, 4
 	mov si, bp
 %endmacro
@@ -190,7 +190,7 @@ redraw:
 	popf
 	jnz get_next_piece
 	piece_operation_remove
-	lodsw
+	lodsw ; move piece down
 	;
 	; Read keyboard
 	;
@@ -216,7 +216,7 @@ redraw:
 	dec al
 	jnz short @@undo_move
 	dec cx
-	jmp @@move_collision_test
+	jmp short @@move_collision_test
 @@do_rotate:
 	rotate_piece
 	dec cx ; negate the inc cx below (instead of jmp)
