@@ -232,23 +232,20 @@ piece_operation:
 	pusha
 	xor di, di
 @next:
-	pusha
+	push ax
 	mov ax, dx
 	and ax, 0x0f
 	shl ax, cl
 piece_mode:
-	test ax, word [si]
-	popa
+	and ax, word [si]
+	or di, ax
+	pop ax
 	lodsw
-	jz @z
-	xchg ax, di ; mov di, ax (invalidate ax)
-@z:
 	shr dx, 4
 	jnz @next
-
 	or di, di
 	popa
-	mov byte [bx], 0x85 ; Enter test-mode
+	mov byte [bx], 0x23 ; Enter test-mode
 	ret
 
 pieces:
