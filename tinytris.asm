@@ -2,6 +2,7 @@
 ; ## Assumptions ##
 ; - text-mode (0xb8000) is active @ entry-point (ax=1; int 0x13)
 ; - es=ss=ds @ entry-point
+; - sp has BOARD_BYTES accessible bytes @ entry-point
 ;
 ; ## Registers ##
 ;
@@ -28,7 +29,7 @@ org 0x7c00
 %define BOARD_BYTES (BOARD_HEIGHT * 2)
 
 %macro init_board 0
-	sub sp, BOARD_BYTES
+	;sub sp, BOARD_BYTES
 	mov bp, sp
 	mov ax, 0x1003
 	mov cx, BOARD_HEIGHT - 1
@@ -45,7 +46,7 @@ org 0x7c00
 	pusha
 	mov si, bp
 	xor di, di
-	mov bl, BOARD_HEIGHT
+	mov bl, (BOARD_HEIGHT - 1)
 @@next_row:
 	mov dx, 0x1000
 @@next_col
@@ -60,8 +61,12 @@ org 0x7c00
 	jnz @@next_col
 	add di, ((SCREEN_WIDTH * 2) - ((BOARD_WIDTH + 1) * 4))
 	lodsw ; add si, 2
-	dec bl
-	jnz @@next_row
+	;
+	; We only initialize bl, but because bx points to the piece
+	; data, bh high bit is never set. dec bx will work
+	;
+	dec bx
+	jnb @@next_row
 	popa
 %endif
 %endmacro
@@ -199,7 +204,7 @@ redraw:
 	;
 	; mov ah, 1
 	; int 0x16
-	; jz redraw
+	; jz redraw  ; (6 bytes total i think)
 	;
 	; Read keyboard (blocking)
 	;
