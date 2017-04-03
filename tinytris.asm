@@ -98,17 +98,17 @@ org 0x7c00
 	; TODO : This feels dumb, but i can no longer understand
 	;        what it does :) #too-old
 	;
-	shr di, 12
+	shr di, 0x0C
 	xchg ax, cx
 	shl di, cl
 	xchg ax, cx
-	sub al, 4
 
 	or bp, di ; bp = rotated
 
 	pop dx
 	shr si, 1
-	dec cl
+	dec cx
+	sub al, 0x04
 	jnb @@next
 	pop cx
 	push bp
