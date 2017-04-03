@@ -63,7 +63,8 @@ org 0x7c00
 	lodsw ; add si, 2
 	;
 	; We only initialize bl, but because bx points to the piece
-	; data, bh high bit is never set. dec bx will work
+	; data, bh high bit is never set. dec bx will work and saves
+	; a byte over bl.
 	;
 	dec bx
 	jnb @@next_row
@@ -152,7 +153,11 @@ org 0x7c00
 	jnb @@invalid
 	shl al, 1
 	movzx di, al
-	mov dx, [bx + di + (pieces - piece_mode)]
+	;
+	; Use bx + di - (pieces - piece_mode) to force 1 byte
+	; displacement over two bytes with [di + pieces]
+	;
+	mov dx, word [bx + di + (pieces - piece_mode)]
 	mov cl, 4
 	mov si, bp
 %endmacro
@@ -190,7 +195,7 @@ redraw:
 	dec si
 	dec si
 @@no_collide:
-	piece_operation_merge ; SIZE: can reduce 3 bytes here, just change piece_mode once
+	piece_operation_merge
 	draw_board
 	popf
 	jnz get_next_piece
