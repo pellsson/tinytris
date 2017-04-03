@@ -202,6 +202,8 @@ redraw:
 	;
 	; Read keyboard (blocking)
 	;
+	push redraw ; return address
+
 	push cx ; old X-position
 	push dx ; old rotation
 	xor ah, ah
@@ -224,11 +226,11 @@ redraw:
 	jnz short @@undo_move
 	pop ax
 	pop ax
-	jmp redraw
+	ret
 @@undo_move:
 	pop dx
 	pop cx
-	jmp redraw
+	ret
 %endif
 
 piece_operation:
