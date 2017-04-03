@@ -181,10 +181,10 @@ redraw:
 rotate:
 %if 1
 	pusha
-
+;xchg cl, ch
 	xor bp, bp
 	mov si, 0x8888
-	mov cx, 0x03
+	mov cl, 0x03
 	mov al, 0x0c
 @@next:
 	push dx		; ABCD    ...A
