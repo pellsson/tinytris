@@ -218,7 +218,7 @@ redraw:
 	jmp @@move_collision_test
 @@do_rotate:
 	rotate_piece
-	jmp @@move_collision_test
+	dec cx ; negate the inc cx below (instead of jmp)
 @@move_left:
 	inc cx
 @@move_collision_test:
