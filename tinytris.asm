@@ -190,11 +190,6 @@ redraw:
 	jnz get_next_piece
 	piece_operation_remove
 	lodsw
-
-	call run
-	jmp short redraw
-
-run:
 	;
 	; Read keyboard
 	;
@@ -229,11 +224,11 @@ run:
 	jnz short @@undo_move
 	pop ax
 	pop ax
-	ret
+	jmp redraw
 @@undo_move:
 	pop dx
 	pop cx
-	ret
+	jmp redraw
 %endif
 
 piece_operation:
