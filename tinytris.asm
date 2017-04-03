@@ -153,6 +153,7 @@ org 0x7c00
 %endmacro
 
 ; 09 14 - or word [si], dx
+; 23 14 - and word [si], dx
 ; 31 14 - xor word [si], dx
 ; 85 14 - test word [si], dx
 %macro piece_operation_merge 0
@@ -237,14 +238,12 @@ piece_operation:
 	pusha
 	xor di, di
 @next:
-	push ax
 	mov ax, dx
 	and ax, 0x0f
 	shl ax, cl
 piece_mode:
 	and ax, word [si]
 	or di, ax
-	pop ax
 	lodsw
 	shr dx, 4
 	jnz @next
@@ -254,13 +253,13 @@ piece_mode:
 	ret
 
 pieces:
-	dw 0x2222 ; I (2)
-	dw 0x4460 ; L (4)
-	dw 0x2260 ; J (4)
-	dw 0x06C0 ; S (2)
-	dw 0x0C60 ; Z (2)
-	dw 0x0660 ; O (0)
-	dw 0x04E0 ; T (4)
+	dw 0x2222 ; I
+	dw 0x4460 ; L
+	dw 0x2260 ; J
+	dw 0x06C0 ; S
+	dw 0x0C60 ; Z
+	dw 0x0660 ; O
+	dw 0x04E0 ; T
 
 clobber_mem:
 
