@@ -66,6 +66,56 @@ org 0x7c00
 %endif
 %endmacro
 
+;
+; ABCD    MIEA    PONM    DHLP
+; EFGH    NJFB    LKJI    BGKO
+; IJKL    OKGC    HGFE    CFJN
+; MNOP    PLHD    DBCA    AEIM
+;
+%macro rotate_piece 0
+	pusha
+	xor bp, bp
+	mov si, 0x8888
+	mov cl, 0x03
+	mov al, 0x0c
+@@next:
+	push dx		; ABCD    ...A
+	and dx, si	; EFGH -> ...E
+	shr dx, cl	; IJKL -> ...I
+	mov di, dx	; MNOP    ...M
+
+	push cx
+	mov cl, 15
+@@solve:
+	mov bx, dx
+	shl bx, cl
+	or di, bx
+	sub cl, 5
+	jnz @@solve
+
+	pop cx
+	;
+	; TODO : This feels dumb, but i can no longer understand
+	;        what it does :) #too-old
+	;
+	shr di, 12
+	xchg ax, cx
+	shl di, cl
+	xchg ax, cx
+	sub al, 4
+
+	or bp, di ; bp = rotated
+
+	pop dx
+	shr si, 1
+	dec cl
+	jnb @@next
+	pop cx
+	push bp
+	popa
+	xchg di, dx
+%endmacro
+
 %macro remove_lines 0
 	push ds
 	pop es
@@ -140,6 +190,11 @@ redraw:
 	jnz get_next_piece
 	piece_operation_remove
 	lodsw
+
+	call run
+	jmp short redraw
+
+run:
 	;
 	; Read keyboard
 	;
@@ -152,81 +207,34 @@ redraw:
 	;
 	; Read keyboard (blocking)
 	;
-	mov di, cx ; new X-position
+	push cx ; old X-position
+	push dx ; old rotation
 	xor ah, ah
 	int 0x16
 	sub al, 'j'
-	jz @@move_left
+	jz short @@move_left
 	dec al
-	jz short rotate
+	jz short @@do_rotate
 	dec al
-	jnz short redraw
+	jnz short @@undo_move
 	dec cx
+	jmp @@move_collision_test
+@@do_rotate:
+	rotate_piece
 	jmp @@move_collision_test
 @@move_left:
 	inc cx
 @@move_collision_test:
 	piece_operation_test
-	jz short redraw
-	mov cx, di ; undo move
-	jmp short redraw
-%endif
-
-;
-; ABCD    MIEA    PONM    DHLP
-; EFGH    NJFB    LKJI    BGKO
-; IJKL    OKGC    HGFE    CFJN
-; MNOP    PLHD    DBCA    AEIM
-;
-rotate:
-%if 1
-	pusha
-;xchg cl, ch
-	xor bp, bp
-	mov si, 0x8888
-	mov cl, 0x03
-	mov al, 0x0c
-@@next:
-	push dx		; ABCD    ...A
-	and dx, si	; EFGH -> ...E
-	shr dx, cl	; IJKL -> ...I
-	mov di, dx	; MNOP    ...M
-
-	push cx
-	mov cl, 15
-@@solve:
-	mov bx, dx
-	shl bx, cl
-	or di, bx
-	sub cl, 5
-	jnz @@solve
-
-	pop cx
-
-	shr di, 12
-	xchg ax, cx
-	shl di, cl
-	xchg ax, cx
-	sub al, 4
-
-	or bp, di ; bp = rotated
-
+	jnz short @@undo_move
+	pop ax
+	pop ax
+	ret
+@@undo_move:
 	pop dx
-	shr si, 1
-	dec cl
-	jnb @@next
-
 	pop cx
-	push bp ; change di on in pusha
-	popa
-
-	xchg dx, di
-	piece_operation_test
-	jz @@can_rotate
-	xchg dx, di
-@@can_rotate:
+	ret
 %endif
-	jmp redraw
 
 piece_operation:
 	pusha
@@ -256,6 +264,8 @@ pieces:
 	dw 0x0C60 ; Z (2)
 	dw 0x0660 ; O (0)
 	dw 0x04E0 ; T (4)
+
+clobber_mem:
 
 %ifdef BOOT_SECTOR
 times 510-$+$$ db 0xCC
