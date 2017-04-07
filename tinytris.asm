@@ -21,6 +21,9 @@ org 0x100
 org 0x7c00
 %endif
 
+%define SPEED 32
+;%define AUTO_FALL
+
 %define SCREEN_WIDTH 80
 %define SCREEN_HEIGHT 25
 %define BOARD_INNER_WIDTH 10
@@ -157,7 +160,7 @@ org 0x7c00
 	; Use bx + di - (pieces - piece_mode) to force 1 byte
 	; displacement over two bytes with [di + pieces]
 	;
-	mov dx, word [bx + di + (pieces - piece_mode)]
+	mov dx, word [di + pieces]
 	mov cl, 4
 	mov si, bp
 %endmacro
@@ -167,16 +170,17 @@ org 0x7c00
 ; 31 14 - xor word [si], dx
 ; 85 14 - test word [si], dx
 %macro piece_operation_merge 0
-	mov byte [bx], 0x09
+	mov al, 0x09
 	call piece_operation
 %endmacro
 
 %macro piece_operation_remove 0
-	mov byte [bx], 0x31
+	mov al, 0x31
 	call piece_operation
 %endmacro
 
 %macro piece_operation_test 0
+	mov al, 0x23 ; Enter test-mode
 	call piece_operation
 %endmacro
 
@@ -184,7 +188,6 @@ org 0x7c00
 start:
 	cld
 	init_board
-	mov bx, piece_mode
 get_next_piece:
 	remove_lines
 	next_piece
@@ -200,16 +203,23 @@ redraw:
 	popf
 	jnz get_next_piece
 	piece_operation_remove
+%ifdef AUTO_FALL
+	add bl, SPEED
+	jnc @@no_advance
+%endif
 	lodsw ; move piece down
+%ifdef AUTO_FALL
+@@no_advance:
 	;
 	; Read keyboard
 	;
 	;
 	; Non-blocking keyboard:
 	;
-	; mov ah, 1
-	; int 0x16
-	; jz redraw  ; (6 bytes total i think)
+	mov ah, 1
+	int 0x16
+	jz redraw  ; (6 bytes total i think)
+%endif
 	;
 	; Read keyboard (blocking)
 	;
@@ -245,6 +255,7 @@ redraw:
 %endif
 
 piece_operation:
+	mov byte [piece_mode], al ; Enter test-mode
 	pusha
 	xor di, di
 @next:
@@ -259,7 +270,6 @@ piece_mode:
 	jnz @next
 	or di, di
 	popa
-	mov byte [bx], 0x23 ; Enter test-mode
 	ret
 
 pieces:
