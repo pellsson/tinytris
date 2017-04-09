@@ -129,9 +129,9 @@ org 0x7c00
 	push ds
 	pop es
 @@next:
-	push si
 	cmp word [si], 0x1FFF
 	ja @@done
+	push si
 	jnz @@next_row
 	mov di, si
 	std
