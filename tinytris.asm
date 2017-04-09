@@ -22,7 +22,7 @@ org 0x7c00
 %endif
 
 %define SPEED 32
-;%define AUTO_FALL
+%define AUTO_FALL
 
 %define SCREEN_WIDTH 80
 %define SCREEN_HEIGHT 25
@@ -102,15 +102,10 @@ org 0x7c00
 	sub cl, 5
 	jnz @@solve
 
-	pop cx
-	;
-	; TODO : This feels dumb, but i can no longer understand
-	;        what it does :) #too-old
-	;
 	shr bp, 0x0C
-	xchg ax, cx
+	mov cx, ax
 	shl bp, cl
-	xchg ax, cx
+	pop cx
 
 	or di, bp ; bp = rotated
 
@@ -120,7 +115,7 @@ org 0x7c00
 	sub al, 0x04
 	jnb @@next
 	pop bp
-	mov [bp-12], di
+	mov [bp-12], di ;; popa.dx = di
 	popa
 %endmacro
 
