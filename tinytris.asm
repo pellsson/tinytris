@@ -48,7 +48,6 @@ org 0x7c00
 	pop es
 	pusha
 	mov si, bp
-	xor di, di
 	mov bl, (BOARD_HEIGHT - 1)
 @@next_row:
 	mov dx, 0x1000
@@ -83,7 +82,8 @@ org 0x7c00
 ;
 %macro rotate_piece 0
 	pusha
-	xor bp, bp
+	push bp
+	xor di, di
 	mov si, 0x8888
 	mov cl, 0x03
 	mov al, 0x0c
@@ -91,14 +91,14 @@ org 0x7c00
 	push dx		; ABCD    ...A
 	and dx, si	; EFGH -> ...E
 	shr dx, cl	; IJKL -> ...I
-	mov di, dx	; MNOP    ...M
+	mov bp, dx	; MNOP    ...M
 
 	push cx
 	mov cl, 15
 @@solve:
 	mov bx, dx
 	shl bx, cl
-	or di, bx
+	or bp, bx
 	sub cl, 5
 	jnz @@solve
 
@@ -107,22 +107,21 @@ org 0x7c00
 	; TODO : This feels dumb, but i can no longer understand
 	;        what it does :) #too-old
 	;
-	shr di, 0x0C
+	shr bp, 0x0C
 	xchg ax, cx
-	shl di, cl
+	shl bp, cl
 	xchg ax, cx
 
-	or bp, di ; bp = rotated
+	or di, bp ; bp = rotated
 
 	pop dx
 	shr si, 1
 	dec cx
 	sub al, 0x04
 	jnb @@next
-	pop cx
-	push bp
+	pop bp
+	mov [bp-12], di
 	popa
-	xchg di, dx
 %endmacro
 
 %macro remove_lines 0
@@ -192,6 +191,7 @@ get_next_piece:
 	remove_lines
 	next_piece
 redraw:
+	xor di, di
 	piece_operation_test
 	pushf
 	jz @@no_collide
@@ -257,7 +257,6 @@ redraw:
 piece_operation:
 	mov byte [piece_mode], al ; Enter test-mode
 	pusha
-	xor di, di
 @next:
 	mov ax, dx
 	and ax, 0x0f
