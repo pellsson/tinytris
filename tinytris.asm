@@ -10,9 +10,9 @@
 ; cl = piece-x
 ; si = piece_ptr into board
 ; dx = piece
-; bx = patch_ptr
+; di = always zero
 ;
-; ax, di = clobber (hehe sometimes at least)
+; ax, bx = clobber (hehe sometimes at least)
 ;
 bits 16
 %ifndef BOOT_SECTOR
@@ -21,7 +21,7 @@ org 0x100
 org 0x7c00
 %endif
 
-%define SPEED 32
+%define SPEED 8
 %define AUTO_FALL
 
 %define SCREEN_WIDTH 80
@@ -47,12 +47,11 @@ org 0x7c00
 	push 0xb800
 	pop es
 	pusha
-	mov si, bp
 	mov bl, (BOARD_HEIGHT - 1)
 @@next_row:
 	mov dx, 0x1000
 @@next_col
-	test dx, word [si]
+	test dx, word [bp]
 	mov ah, 0x44
 	jnz @@draw
 	mov ah, 0x77
@@ -62,7 +61,8 @@ org 0x7c00
 	shr dx, 1
 	jnz @@next_col
 	add di, ((SCREEN_WIDTH * 2) - ((BOARD_WIDTH + 1) * 4))
-	lodsw ; add si, 2
+	inc bp
+	inc bp
 	;
 	; We only initialize bl, but because bx points to the piece
 	; data, bh high bit is never set. dec bx will work and saves
@@ -82,39 +82,35 @@ org 0x7c00
 ;
 %macro rotate_piece 0
 	pusha
-	push bp
-	xor di, di
 	mov si, 0x8888
-	mov cl, 0x03
-	mov al, 0x0c
+	mov cx, 0x0c03 ; ch al ah ax
 @@next:
 	push dx		; ABCD    ...A
 	and dx, si	; EFGH -> ...E
 	shr dx, cl	; IJKL -> ...I
-	mov bp, dx	; MNOP    ...M
+	mov ax, dx	; MNOP    ...M
 
 	push cx
 	mov cl, 15
 @@solve:
 	mov bx, dx
 	shl bx, cl
-	or bp, bx
+	or ax, bx
 	sub cl, 5
 	jnz @@solve
 
-	shr bp, 0x0C
-	mov cx, ax
-	shl bp, cl
+	shr ax, 0x0C
+	mov cl, ch
+	shl ax, cl
 	pop cx
 
-	or di, bp ; bp = rotated
+	or di, ax ; ax = rotated
 
 	pop dx
 	shr si, 1
 	dec cx
-	sub al, 0x04
+	sub ch, 0x04
 	jnb @@next
-	pop bp
 	mov [bp-12], di ;; popa.dx = di
 	popa
 %endmacro
@@ -149,12 +145,8 @@ org 0x7c00
 	cmp al, 7
 	jnb @@invalid
 	shl al, 1
-	movzx di, al
-	;
-	; Use bx + di - (pieces - piece_mode) to force 1 byte
-	; displacement over two bytes with [di + pieces]
-	;
-	mov dx, word [di + pieces]
+	movzx bx, al
+	mov dx, word [bx + pieces]
 	mov cl, 4
 	mov si, bp
 %endmacro
@@ -185,8 +177,8 @@ start:
 get_next_piece:
 	remove_lines
 	next_piece
-redraw:
 	xor di, di
+redraw:
 	piece_operation_test
 	pushf
 	jz @@no_collide
@@ -196,13 +188,14 @@ redraw:
 	piece_operation_merge
 	draw_board
 	popf
-	jnz get_next_piece
+	jnz short get_next_piece
 	piece_operation_remove
 %ifdef AUTO_FALL
 	add bl, SPEED
-	jnc @@no_advance
+	jnc short @@no_advance
 %endif
 	lodsw ; move piece down
+
 %ifdef AUTO_FALL
 @@no_advance:
 	;
@@ -213,7 +206,7 @@ redraw:
 	;
 	mov ah, 1
 	int 0x16
-	jz redraw  ; (6 bytes total i think)
+	jz short redraw  ; (6 bytes total i think)
 %endif
 	;
 	; Read keyboard (blocking)
@@ -222,7 +215,7 @@ redraw:
 
 	push cx ; old X-position
 	push dx ; old rotation
-	xor ah, ah
+	mov ax, di
 	int 0x16
 	sub al, 'j'
 	jz short @@move_left
@@ -257,7 +250,7 @@ piece_operation:
 	and ax, 0x0f
 	shl ax, cl
 piece_mode:
-	and ax, word [si]
+	and word [si], ax
 	or di, ax
 	lodsw
 	shr dx, 4
