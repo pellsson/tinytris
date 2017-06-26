@@ -79,32 +79,31 @@ org 0x7c00
 %macro rotate_piece 0
 	pusha
 	mov si, 0x8888
-	mov cx, 0x0c03 ; ch al ah ax
+	mov bp, 0x0003
 @@next:
+	mov cx, bp
+
 	push dx		; ABCD    ...A
 	and dx, si	; EFGH -> ...E
 	shr dx, cl	; IJKL -> ...I
 	mov ax, dx	; MNOP    ...M
 
-	push cx
-	mov cl, 3
+	mov cx, 3
 @@solve:
 	shl dx, 5
 	or ax, dx
-	dec cl
+	dec cx
 	jnz @@solve
 
 	shr ax, 0x0C
-	mov cl, ch
+	imul cx, bp, 0x04
 	shl ax, cl
-	pop cx
 
 	or di, ax ; ax = rotated
 
 	pop dx
 	shr si, 1
-	dec cx
-	sub ch, 0x04
+	dec bp
 	jnb @@next
 	mov [bx-12], di ;; popa.dx = di
 	popa
