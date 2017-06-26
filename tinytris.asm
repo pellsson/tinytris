@@ -6,13 +6,13 @@
 ;
 ; ## Registers ##
 ;
-; bp = board
+; bx = board
 ; cl = piece-x
 ; si = piece_ptr into board
 ; dx = piece
 ; di = always zero
 ;
-; ax, bx = clobber (hehe sometimes at least)
+; ax, bp = clobber (hehe sometimes at least)
 ;
 bits 16
 %ifndef BOOT_SECTOR
@@ -33,7 +33,7 @@ org 0x7c00
 
 %macro init_board 0
 	;sub sp, BOARD_BYTES
-	mov bp, sp
+	mov bx, sp
 	mov ax, 0x1003
 	mov cx, BOARD_HEIGHT - 1
 	mov di, sp
@@ -47,11 +47,11 @@ org 0x7c00
 	push 0xb800
 	pop es
 	pusha
-	mov bl, (BOARD_HEIGHT - 1)
+	mov cl, (BOARD_HEIGHT - 1)
 @@next_row:
 	mov dx, 0x1000
 @@next_col
-	test dx, word [bp]
+	test dx, word [bx]
 	mov ah, 0x44
 	jnz @@draw
 	mov ah, 0x77
@@ -61,14 +61,10 @@ org 0x7c00
 	shr dx, 1
 	jnz @@next_col
 	add di, ((SCREEN_WIDTH * 2) - ((BOARD_WIDTH + 1) * 4))
-	inc bp
-	inc bp
-	;
-	; We only initialize bl, but because bx points to the piece
-	; data, bh high bit is never set. dec bx will work and saves
-	; a byte over bl.
-	;
-	dec bx
+	inc bx
+	inc bx
+
+	dec cx
 	jnb @@next_row
 	popa
 %endif
@@ -93,9 +89,9 @@ org 0x7c00
 	push cx
 	mov cl, 15
 @@solve:
-	mov bx, dx
-	shl bx, cl
-	or ax, bx
+	mov bp, dx
+	shl bp, cl
+	or ax, bp
 	sub cl, 5
 	jnz @@solve
 
@@ -111,7 +107,7 @@ org 0x7c00
 	dec cx
 	sub ch, 0x04
 	jnb @@next
-	mov [bp-12], di ;; popa.dx = di
+	mov [bx-12], di ;; popa.dx = di
 	popa
 %endmacro
 
@@ -128,7 +124,7 @@ org 0x7c00
 	lodsw ; sub si, 2
 @@more:
 	movsw
-	cmp si, bp
+	cmp si, bx
 	jne @@more
 @@next_row:
 	pop si
@@ -145,10 +141,10 @@ org 0x7c00
 	cmp al, 7
 	jnb @@invalid
 	shl al, 1
-	movzx bx, al
-	mov dx, word [bx + pieces]
+	movzx bp, al
+	mov dx, word [bp + pieces]
 	mov cl, 4
-	mov si, bp
+	mov si, bx
 %endmacro
 
 ; 09 14 - or word [si], dx
@@ -191,7 +187,7 @@ redraw:
 	jnz short get_next_piece
 	piece_operation_remove
 %ifdef AUTO_FALL
-	add bl, SPEED
+	add ch, SPEED
 	jnc short @@no_advance
 %endif
 	lodsw ; move piece down
@@ -218,25 +214,26 @@ redraw:
 	mov ax, di
 	int 0x16
 	sub al, 'j'
-	jz short @@move_left
+	jz short move_left
 	dec al
-	jz short @@do_rotate
+	jz short do_rotate
 	dec al
-	jnz short @@undo_move
+	jnz short undo_move
 	dec cx
-	jmp short @@move_collision_test
-@@do_rotate:
+	jmp short move_collision_test
+
+do_rotate:
 	rotate_piece
 	dec cx ; negate the inc cx below (instead of jmp)
-@@move_left:
+move_left:
 	inc cx
-@@move_collision_test:
+move_collision_test:
 	piece_operation_test
-	jnz short @@undo_move
+	jnz short undo_move
 	pop ax
 	pop ax
 	ret
-@@undo_move:
+undo_move:
 	pop dx
 	pop cx
 	ret
@@ -258,6 +255,7 @@ piece_mode:
 	or di, di
 	popa
 	ret
+
 
 pieces:
 	dw 0x2222 ; I
