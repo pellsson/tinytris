@@ -87,12 +87,11 @@ org 0x7c00
 	mov ax, dx	; MNOP    ...M
 
 	push cx
-	mov cl, 15
+	mov cl, 3
 @@solve:
-	mov bp, dx
-	shl bp, cl
-	or ax, bp
-	sub cl, 5
+	shl dx, 5
+	or ax, dx
+	dec cl
 	jnz @@solve
 
 	shr ax, 0x0C
