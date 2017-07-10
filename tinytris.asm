@@ -1,9 +1,4 @@
 ;
-; ## Assumptions ##
-; - text-mode (0xb8000) is active @ entry-point (ax=1; int 0x13)
-; - es=ss=ds @ entry-point
-; - sp has BOARD_BYTES accessible bytes @ entry-point
-;
 ; ## Registers ##
 ;
 ; bx = board
@@ -32,7 +27,6 @@ org 0x7c00
 %define BOARD_BYTES (BOARD_HEIGHT * 2)
 
 %macro init_board 0
-	;sub sp, BOARD_BYTES
 	mov bx, sp
 	mov ax, 0x1003
 	mov cx, BOARD_HEIGHT - 1
