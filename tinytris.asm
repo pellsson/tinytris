@@ -16,6 +16,7 @@ org 0x100
 org 0x7c00
 %endif
 
+%define RANDOM_USE_PIT
 %define SPEED 8
 %define AUTO_FALL
 
@@ -128,10 +129,12 @@ org 0x7c00
 %endmacro
 
 %macro next_piece 0
-@@invalid:
+%ifdef RANDOM_USE_PIT
 	in al, 0x40
-	cmp al, 7
-	jnb @@invalid
+%else
+	rdtsc
+%endif
+	aam 0x07
 	shl al, 1
 	movzx bp, al
 	mov dx, word [bp + pieces]
