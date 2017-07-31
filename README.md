@@ -1,8 +1,8 @@
 # About
 
-Tetris written in 256 bytes or less. Currently it is at 255 bytes; complete with rotation, collision, all different tetraminos, lines being removed and dropping pieces.
+Tetris written in 256 bytes or less. Currently it is at 253 bytes; complete with rotation, collision, all different tetraminos, lines being removed and dropping pieces.
 
-There are other implementations of Tetis in 256 bytes or less, but I have yet to find one that doesn't "cheat". Most commonly, they lack multiple tetraminos, or the tetraminos have been altered. Using a 3-length "long"-piece for instance significantly reduces rotation complexity.
+To my knowledge it is the first complete Tetris implementation in 256 bytes or less. There are other implementations, some significantly smaller than 256 bytes, that are extremely impressive in their own way. However, I never found one that doesn't alter the original concept in some way (most commonly by removing or altering tetraminos).
 
 # Code walk-through
 
@@ -24,5 +24,5 @@ Stuff that is really trash in the current implementation.
 
 - SPEED of dropping blocks depends on the CPU it is being ran on. Using a timer instead would be more portable :)
 
-- Random logic is based on the PIT timer, which for obvious reasons isn't ideal :)
+- Random logic is based on the PIT timer or rdtsc (#ifdef'ed), which for obvious reasons isn't ideal :)
 

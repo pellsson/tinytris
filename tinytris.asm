@@ -168,8 +168,8 @@ start:
 get_next_piece:
 	remove_lines
 	next_piece
-	xor di, di
 redraw:
+	xor di, di
 	piece_operation_test
 	pushf
 	jz @@no_collide
