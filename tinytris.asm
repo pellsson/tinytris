@@ -156,11 +156,6 @@ org 0x7c00
 	call piece_operation
 %endmacro
 
-%macro piece_operation_test 0
-	mov al, 0x23 ; Enter test-mode
-	call piece_operation
-%endmacro
-
 %if 1
 start:
 	cld
@@ -170,7 +165,7 @@ get_next_piece:
 	next_piece
 redraw:
 	xor di, di
-	piece_operation_test
+	call piece_operation_test
 	pushf
 	jz @@no_collide
 	dec si
@@ -223,7 +218,7 @@ do_rotate:
 move_left:
 	inc cx
 move_collision_test:
-	piece_operation_test
+	call piece_operation_test
 	jnz short undo_move
 	pop ax
 	pop ax
@@ -234,6 +229,8 @@ undo_move:
 	ret
 %endif
 
+piece_operation_test:
+	mov al, 0x23 ; Enter test-mode
 piece_operation:
 	mov byte [piece_mode], al ; Enter test-mode
 	pusha

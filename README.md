@@ -1,6 +1,6 @@
 # About
 
-Tetris written in 256 bytes or less. Currently it is at 253 bytes; complete with rotation, collision, all different tetraminos, lines being removed and dropping pieces.
+Tetris written in 256 bytes or less. Currently it is at 251 bytes; complete with rotation, collision, all different tetraminos, lines being removed and dropping pieces.
 
 To my knowledge it is the first complete Tetris implementation in 256 bytes or less. There are other implementations, some significantly smaller than 256 bytes, that are extremely impressive in their own way. However, I never found one that doesn't alter the original concept in some way (most commonly by removing or altering tetraminos).
 
