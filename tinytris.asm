@@ -17,7 +17,7 @@ org 0x7c00
 %endif
 
 %define RANDOM_USE_PIT
-%define SPEED 8
+%define SPEED 32
 %define AUTO_FALL
 
 %define SCREEN_WIDTH 80
@@ -87,8 +87,7 @@ org 0x7c00
 @@solve:
 	shl dx, 5
 	or ax, dx
-	dec cx
-	jnz @@solve
+	loopnz @@solve
 
 	shr ax, 0x0C
 	imul cx, bp, 0x04
@@ -247,7 +246,6 @@ piece_mode:
 	or di, di
 	popa
 	ret
-
 
 pieces:
 	dw 0x2222 ; I

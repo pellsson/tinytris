@@ -1,1 +1,1 @@
-sh build.sh && cp tinytris.com ~/games/dosgames && dosbox -c tinytris.com
+sh build.sh && cp tinytris.com ~/dosgames && dosbox -c tinytris.com
