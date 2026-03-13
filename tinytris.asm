@@ -83,7 +83,7 @@ org 0x7c00
 	shr dx, cl	; IJKL -> ...I
 	mov ax, dx	; MNOP    ...M
 
-	mov cx, 3
+	mov cl, 3
 @@solve:
 	shl dx, 5
 	or ax, dx
@@ -135,7 +135,8 @@ org 0x7c00
 %endif
 	aam 0x07
 	shl al, 1
-	movzx bp, al
+	cbw
+	xchg ax, bp
 	mov dx, word [bp + pieces]
 	mov cl, 4
 	mov si, bx
@@ -157,7 +158,6 @@ org 0x7c00
 
 %if 1
 start:
-	cld
 	init_board
 get_next_piece:
 	remove_lines
